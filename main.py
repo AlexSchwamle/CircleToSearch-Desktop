@@ -1,3 +1,5 @@
+import Config 
+
 import tkinter as tk
 from PIL import Image, ImageTk, ImageGrab, ImageEnhance, ImageDraw
 import webbrowser
@@ -10,12 +12,7 @@ import keyboard
 import gc
 import threading
 import pystray
-import os
-
-# --- CONFIGURATION ---
-BRAVE_PATH = r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"
-BROWSER_LOAD_WAIT_TIME = 1.0 
-HOTKEY = 'ctrl+alt+end'       
+import os    
 
 # Global flag to control the main loop
 APP_RUNNING = True
@@ -123,12 +120,12 @@ class CircleToSearch:
     def automate_google_search(self, image):
         self.send_to_clipboard(image)
         try:
-            webbrowser.register('brave', None, webbrowser.BackgroundBrowser(BRAVE_PATH))
-            webbrowser.get('brave').open("https://google.com")
+            webbrowser.register('browsa', None, webbrowser.BackgroundBrowser(Config.BROWSER_PATH))
+            webbrowser.get('browsa').open("https://google.com")
         except:
             webbrowser.open("https://google.com")
 
-        time.sleep(BROWSER_LOAD_WAIT_TIME)
+        time.sleep(Config.BROWSER_LOAD_WAIT_TIME)
         pyautogui.hotkey('ctrl', 'v')
         time.sleep(0.5)
         pyautogui.press('enter')
@@ -178,9 +175,9 @@ def main():
     while APP_RUNNING:
         try:
             # We use a short timeout loop so we can check APP_RUNNING occasionally
-            if keyboard.is_pressed(HOTKEY):
+            if keyboard.is_pressed(Config.HOTKEY):
                 # Debounce: wait until key is released so we don't trigger 50 times
-                while keyboard.is_pressed(HOTKEY):
+                while keyboard.is_pressed(Config.HOTKEY):
                     time.sleep(0.1)
                 
                 # Launch App
