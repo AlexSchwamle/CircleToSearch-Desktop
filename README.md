@@ -7,7 +7,7 @@ I have been using the circle to search feature on my Android phone for a while a
 - Edit `Config.py` to your own browser path and hotkey liking
 ### After Configurating
 - Double click `start.bat` to open it silently in the background (closeable via the blue icon in the taskbar icons)
-- Press the hotkey `ctrl + alt + end` by default (I have a mouse macro using Logitech's G Hub)
+- Press the hotkey `ctrl + alt + print screen` by default (I have a mouse macro using Logitech's G Hub)
 - Left click to draw a circle around the area you want to send to Google's AI Mode
     - The blue rectangle is what will be sent
 - Done!
