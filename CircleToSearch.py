@@ -91,12 +91,11 @@ class CircleToSearch:
         xs = [p[0] for p in self.points]
         ys = [p[1] for p in self.points]
         
-        padding = 10
         box = (
-            max(0, min(xs) - padding),
-            max(0, min(ys) - padding),
-            min(max(xs) + padding, self.original_image.width),
-            min(max(ys) + padding, self.original_image.height)
+            max(0, min(xs)),
+            max(0, min(ys)),
+            min(max(xs), self.original_image.width),
+            min(max(ys), self.original_image.height)
         )
 
         cropped_image = self.original_image.crop(box)
