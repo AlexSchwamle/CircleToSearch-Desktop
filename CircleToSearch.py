@@ -52,7 +52,8 @@ class CircleToSearch:
         self.canvas.bind("<B1-Motion>", self.on_move_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
         self.root.bind("<Escape>", lambda e: self.quit_app())
-        self.root.bind("<Button-3>", lambda e: self.quit_app())
+        self.root.bind("<Button-3>", lambda e: "break") # suppress right click entirely 
+        self.root.bind("<ButtonRelease-3>", lambda e: self.quit_app())
 
     def start(self):
         self.root.mainloop()
