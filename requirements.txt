@@ -1,0 +1,5 @@
+tkinter
+Pillow
+pyautogui
+keyboard
+pystray
