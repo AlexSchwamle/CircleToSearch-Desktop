@@ -43,9 +43,13 @@ class CircleToSearch:
         self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         self.canvas.create_image(0, 0, image=self.tk_image, anchor="nw")
+        # Store background ID so we can stack things above it if needed
+        self.bg_id = self.canvas.create_image(0, 0, image=self.tk_image, anchor="nw")
 
         self.points = []
         self.selection_rect = None
+        self.highlight_id = -1        # The ID for the bright image patch
+        self.tk_highlight = None      # The PhotoImage object (to prevent Garbage Collection)
 
         # Bindings
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
@@ -63,7 +67,12 @@ class CircleToSearch:
 
     def on_button_press(self, event):
         self.points = [(event.x, event.y)]
-        # Create the visual feedback box (Cyan, Dashed)
+        
+        # 1. Create the Highlight Image Placeholder (Bright Area)
+        # We create this FIRST so it sits behind the Cyan Rect and White Lines
+        self.highlight_id = self.canvas.create_image(event.x, event.y, anchor="nw")
+
+        # 2. Create the visual feedback box (Cyan, Dashed)
         self.selection_rect = self.canvas.create_rectangle(
             event.x, event.y, event.x, event.y,
             outline="#00FFFF", width=2, dash=(4, 4)
@@ -78,11 +87,30 @@ class CircleToSearch:
             x2, y2 = self.points[-1]
             self.canvas.create_line(x1, y1, x2, y2, fill="white", width=4, capstyle=tk.ROUND, smooth=True)
 
-        # Update the bounding box
+        # Update the bounding box and the bright highlight
         if self.selection_rect and len(self.points) > 1:
             xs = [p[0] for p in self.points]
             ys = [p[1] for p in self.points]
-            self.canvas.coords(self.selection_rect, min(xs), min(ys), max(xs), max(ys))
+            min_x, min_y = min(xs), min(ys)
+            max_x, max_y = max(xs), max(ys)
+            
+            # A. Update the Cyan Rectangle Border
+            self.canvas.coords(self.selection_rect, min_x, min_y, max_x, max_y)
+            
+            # B. Update the Bright Highlight Patch
+            # Only update if we have actual area (width and height > 0)
+            if max_x > min_x and max_y > min_y:
+                # Crop the ORIGINAL (Bright) image to the current selection bounds
+                crop = self.original_image.crop((min_x, min_y, max_x, max_y))
+                
+                # Convert to Tkinter-compatible image
+                self.tk_highlight = ImageTk.PhotoImage(crop)
+                
+                # Update the canvas item with this new image
+                self.canvas.itemconfig(self.highlight_id, image=self.tk_highlight)
+                # Move the image to the top-left corner of the selection
+                self.canvas.coords(self.highlight_id, min_x, min_y)
+
 
     def on_button_release(self, event):
         if len(self.points) < 2:
