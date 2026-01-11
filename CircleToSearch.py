@@ -42,9 +42,18 @@ class CircleToSearch:
         # 4. Setup Canvas
         self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
-        self.canvas.create_image(0, 0, image=self.tk_image, anchor="nw")
         # Store background ID so we can stack things above it if needed
         self.bg_id = self.canvas.create_image(0, 0, image=self.tk_image, anchor="nw")
+
+        # --- MODE SWITCHING SETUP ---
+        self.modes = list(Config.SEARCH_MODES.keys())
+        self.urls = list(Config.SEARCH_MODES.values())
+        self.current_mode_index = 0
+        self.mode_label_id = -1
+        self.hide_timer = None
+        
+        # Display initial label
+        self.show_mode_label()
 
         self.points = []
         self.selection_rect = None
@@ -56,6 +65,10 @@ class CircleToSearch:
         self.canvas.bind("<B1-Motion>", self.on_move_press)
         self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
         self.root.bind("<Escape>", lambda e: self.quit_app())
+        
+        # Mouse Wheel Binding
+        self.root.bind("<MouseWheel>", self.on_scroll)
+        
         self.root.bind("<Button-3>", lambda e: "break") # suppress right click entirely 
         self.root.bind("<ButtonRelease-3>", lambda e: self.quit_app())
 
@@ -64,6 +77,94 @@ class CircleToSearch:
 
     def quit_app(self):
         self.root.destroy()
+
+    # --- MODE SWITCHING & ANIMATION ---
+
+    def show_mode_label(self):
+        """Creates or shows the current mode label at the top center."""
+        text = self.modes[self.current_mode_index]
+        cx = self.root.winfo_screenwidth() // 2
+        cy = 50 
+        
+        if self.mode_label_id != -1:
+            self.canvas.delete(self.mode_label_id)
+
+        # Create text with a slight shadow/outline for readability
+        self.mode_label_id = self.canvas.create_text(
+            cx, cy, text=text, 
+            font=("Segoe UI", 24, "bold"), fill=Config.TEXT_COLOR,
+            anchor="center"
+        )
+        
+        self.reset_hide_timer()
+
+    def reset_hide_timer(self):
+        """Resets the 2-second timer to fade out the label."""
+        if self.hide_timer:
+            self.root.after_cancel(self.hide_timer)
+        self.hide_timer = self.root.after(2000, self.hide_label)
+
+    def hide_label(self):
+        if self.mode_label_id != -1:
+            self.canvas.delete(self.mode_label_id)
+            self.mode_label_id = -1
+
+    def on_scroll(self, event):
+        self.reset_hide_timer()
+
+        # Determine direction
+        direction = 1 if event.delta > 0 else -1
+        
+        # Calculate new index
+        self.current_mode_index = (self.current_mode_index - direction) % len(self.modes)
+        
+        self.animate_roulette(self.current_mode_index, direction)
+
+    def animate_roulette(self, new_idx, direction):
+        cx = self.root.winfo_screenwidth() // 2
+        base_y = 50
+        offset = 80 * direction 
+        
+        # 1. Get the current text object (Old)
+        old_id = self.mode_label_id
+        
+        # 2. Create the New text object
+        new_text = self.modes[new_idx]
+        start_y = base_y + offset 
+        
+        new_id = self.canvas.create_text(
+            cx, start_y, text=new_text, 
+            font=("Segoe UI", 24, "bold"), fill=Config.TEXT_COLOR,
+            anchor="center"
+        )
+        
+        self.mode_label_id = new_id
+
+        # 3. Animation Loop
+        steps = 10
+        delay = 5
+        
+        def step_anim(step=0):
+            if step > steps:
+                self.canvas.delete(old_id)
+                self.canvas.coords(new_id, cx, base_y)
+                return
+            
+            t = step / steps
+            
+            # Move Old OUT
+            old_y = base_y - (offset * t)
+            self.canvas.coords(old_id, cx, old_y)
+            
+            # Move New IN
+            new_y = (base_y + offset) - (offset * t)
+            self.canvas.coords(new_id, cx, new_y)
+            
+            self.root.after(delay, lambda: step_anim(step + 1))
+
+        step_anim()
+
+    # --- DRAWING LOGIC ---
 
     def on_button_press(self, event):
         self.points = [(event.x, event.y)]
@@ -146,8 +247,10 @@ class CircleToSearch:
             print(f"Clipboard error: {e}")
 
     def automate_google_search(self, image):
+        target_url = self.urls[self.current_mode_index]
+        
         self.send_to_clipboard(image)
-        webbrowser.open(Config.SITE_TO_SEARCH)
+        webbrowser.open(target_url)
 
         time.sleep(Config.BROWSER_LOAD_WAIT_TIME)
         pyautogui.hotkey('ctrl', 'v')

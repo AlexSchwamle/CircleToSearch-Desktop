@@ -8,8 +8,9 @@ I have been using the circle to search feature on my Android phone for a while a
 ### After Configurating
 - Double click `start.bat` to open it silently in the background (closeable via the blue icon in the taskbar icons)
 - Press the hotkey `ctrl + alt + print screen` by default (I have a mouse macro using Logitech's G Hub)
-- Left click to draw a circle around the area you want to send to Google Lens (by default)
+- Left click to draw a circle around the area you want to send to AI Mode (by default)
     - The blue rectangle is what will be sent
+    - You can switch between Google Lens and AI Mode by scrolling the mouse wheel 
 - Done!
 
 If you don't want to send it, either press `escape` or `right click`.

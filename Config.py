@@ -1,8 +1,15 @@
 # --- CONFIGURATION ---
 HOTKEY = 'ctrl+alt+print screen' 
 
-# Opens this URL and pastes the cropped image.
-# Note that images.google.com does not seem to support image pasting and google.com sends it directly to AI Mode. 
-SITE_TO_SEARCH = "https://lens.google.com"
+# Define your modes here. 
+# Key = Text displayed on screen
+# Value = URL to open
+SEARCH_MODES = {
+    "AI Mode": "https://google.com",
+    "Lens": "https://lens.google.com"
+}
+
+# Default text color for the mode label
+TEXT_COLOR = "#00FFFF" # Cyan to match the box
 
 BROWSER_LOAD_WAIT_TIME = 1.0 # Seconds to wait for browser+Google to load
