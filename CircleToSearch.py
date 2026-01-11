@@ -147,11 +147,7 @@ class CircleToSearch:
 
     def automate_google_search(self, image):
         self.send_to_clipboard(image)
-        try:
-            webbrowser.register('browsa', None, webbrowser.BackgroundBrowser(Config.BROWSER_PATH))
-            webbrowser.get('browsa').open("https://google.com")
-        except:
-            webbrowser.open("https://google.com")
+        webbrowser.open("https://google.com")
 
         time.sleep(Config.BROWSER_LOAD_WAIT_TIME)
         pyautogui.hotkey('ctrl', 'v')

@@ -4,7 +4,7 @@ I have been using the circle to search feature on my Android phone for a while a
 ## How To Run
 ### Before Running
 - Install the prerequisites via `pip install -r requirements.txt` 
-- Edit `Config.py` to your own browser path and hotkey liking
+- Edit `Config.py` to your own hotkey liking 
 ### After Configurating
 - Double click `start.bat` to open it silently in the background (closeable via the blue icon in the taskbar icons)
 - Press the hotkey `ctrl + alt + print screen` by default (I have a mouse macro using Logitech's G Hub)
