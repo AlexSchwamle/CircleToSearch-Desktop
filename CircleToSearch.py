@@ -45,6 +45,9 @@ class CircleToSearch:
         # Store background ID so we can stack things above it if needed
         self.bg_id = self.canvas.create_image(0, 0, image=self.tk_image, anchor="nw")
 
+        # 5. Setup BOX mode vars 
+        self.starting_x, self.starting_y = None, None 
+
         # --- MODE SWITCHING SETUP ---
         self.modes = list(Config.SEARCH_MODES.keys())
         self.urls = list(Config.SEARCH_MODES.values())
@@ -170,47 +173,62 @@ class CircleToSearch:
         self.points = [(event.x, event.y)]
         
         # 1. Create the Highlight Image Placeholder (Bright Area)
-        # We create this FIRST so it sits behind the Cyan Rect and White Lines
+        # We create this FIRST so it sits behind the Preview Rect and White Lines
         self.highlight_id = self.canvas.create_image(event.x, event.y, anchor="nw")
 
-        # 2. Create the visual feedback box (Cyan, Dashed)
+        # 2. Create the visual feedback box (Blue, Dashed)
         self.selection_rect = self.canvas.create_rectangle(
             event.x, event.y, event.x, event.y,
             outline=Config.BOX_COLOR, width=2, dash=(4, 4)
         )
 
-    def on_move_press(self, event):
-        self.points.append((event.x, event.y))
-        
-        # Draw the white squiggly line
-        if len(self.points) > 1:
-            x1, y1 = self.points[-2]
-            x2, y2 = self.points[-1]
-            self.canvas.create_line(x1, y1, x2, y2, fill="white", width=4, capstyle=tk.ROUND, smooth=True)
+        # 3. Store starting position for BOX mode 
+        self.starting_x, self.starting_y = (event.x, event.y)
 
-        # Update the bounding box and the bright highlight
-        if self.selection_rect and len(self.points) > 1:
+    def on_move_press(self, event):
+        if self.selection_rect is None or self.starting_x is None or self.starting_y is None:
+            return # precaution if fired before on_button_press 
+
+        if Config.MODE.upper() == "BOX":
+            cur_mouse_x, cur_mouse_y = (event.x, event.y)
+            # Get current rectangle bounding box 
+            min_x = min(self.starting_x, cur_mouse_x)
+            min_y = min(self.starting_y, cur_mouse_y)
+            max_x = max(self.starting_x, cur_mouse_x)
+            max_y = max(self.starting_y, cur_mouse_y)
+            self.points = [(min_x, min_y), (max_x, max_y)]
+        else: # "CIRCLE" mode 
+            self.points.append((event.x, event.y))
+            # Draw the white squiggly line
+            if len(self.points) > 1:
+                x1, y1 = self.points[-2]
+                x2, y2 = self.points[-1]
+                self.canvas.create_line(x1, y1, x2, y2, fill="white", width=4, capstyle=tk.ROUND, smooth=True)
+
+            # Update the bounding box and the bright highlight
             xs = [p[0] for p in self.points]
             ys = [p[1] for p in self.points]
             min_x, min_y = min(xs), min(ys)
             max_x, max_y = max(xs), max(ys)
-            
-            # A. Update the Cyan Rectangle Border
-            self.canvas.coords(self.selection_rect, min_x, min_y, max_x, max_y)
-            
-            # B. Update the Bright Highlight Patch
-            # Only update if we have actual area (width and height > 0)
-            if max_x > min_x and max_y > min_y:
-                # Crop the ORIGINAL (Bright) image to the current selection bounds
-                crop = self.original_image.crop((min_x, min_y, max_x, max_y))
-                
-                # Convert to Tkinter-compatible image
-                self.tk_highlight = ImageTk.PhotoImage(crop)
-                
-                # Update the canvas item with this new image
-                self.canvas.itemconfig(self.highlight_id, image=self.tk_highlight)
-                # Move the image to the top-left corner of the selection
-                self.canvas.coords(self.highlight_id, min_x, min_y)
+        
+        # A. Update the Preview Rectangle Border
+        self.canvas.coords(self.selection_rect, min_x, min_y, max_x, max_y)
+        
+        # B. Update the Bright Highlight Patch
+        # Only update if we have actual area (width and height > 0)
+        if max_x <= min_x or max_y <= min_y:
+            return 
+        
+        # Crop the ORIGINAL (Bright) image to the current selection bounds
+        crop = self.original_image.crop((min_x, min_y, max_x, max_y))
+        
+        # Convert to Tkinter-compatible image
+        self.tk_highlight = ImageTk.PhotoImage(crop)
+        
+        # Update the canvas item with this new image
+        self.canvas.itemconfig(self.highlight_id, image=self.tk_highlight)
+        # Move the image to the top-left corner of the selection
+        self.canvas.coords(self.highlight_id, min_x, min_y)
 
 
     def on_button_release(self, event):
@@ -263,7 +281,7 @@ def create_tray_icon():
     # Draw a simple 64x64 blue circle icon in memory
     width = 64
     height = 64
-    color = (0, 255, 255) # Cyan
+    color = (66, 135, 244) # Blue 
     
     image = Image.new('RGB', (width, height), (0, 0, 0))
     dc = ImageDraw.Draw(image)
@@ -287,9 +305,20 @@ def run_tray_icon():
     ))
     icon.run()
 
-# --- MAIN ---
+def display_user_error(message):
+    """Displays a simple error message box to the user."""
+    from tkinter import messagebox
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+    messagebox.showerror("Circle to Search - Error", message)
+    root.destroy()
 
+# --- MAIN ---
 def main():
+    if Config.MODE not in ("BOX", "CIRCLE"):
+        display_user_error(f"Error: Invalid MODE '{Config.MODE}' in Config.py. Must be 'BOX' or 'CIRCLE'.")
+        exit(1) 
+
     # 1. Start System Tray in a separate thread
     tray_thread = threading.Thread(target=run_tray_icon)
     tray_thread.daemon = True
