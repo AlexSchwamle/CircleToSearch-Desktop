@@ -10,9 +10,10 @@ SEARCH_MODES = {
 }
 
 # The color of the rectangle drawn on the screen
-BOX_COLOR = "#00FFFF" # Cyan 
+BOX_COLOR = "#4287f4" # A familiar blue 
 
 # Default text color for the mode label
-TEXT_COLOR = "#00FFFF" # Cyan to match the box
+TEXT_COLOR = "#4287f4" # A familiar blue to match the box
+
 
 BROWSER_LOAD_WAIT_TIME = 1.0 # Seconds to wait for browser+Google to load
