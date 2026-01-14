@@ -176,7 +176,7 @@ class CircleToSearch:
         # 2. Create the visual feedback box (Cyan, Dashed)
         self.selection_rect = self.canvas.create_rectangle(
             event.x, event.y, event.x, event.y,
-            outline="#00FFFF", width=2, dash=(4, 4)
+            outline=Config.BOX_COLOR, width=2, dash=(4, 4)
         )
 
     def on_move_press(self, event):

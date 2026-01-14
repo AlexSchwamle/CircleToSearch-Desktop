@@ -9,6 +9,9 @@ SEARCH_MODES = {
     "Lens": "https://lens.google.com"
 }
 
+# The color of the rectangle drawn on the screen
+BOX_COLOR = "#00FFFF" # Cyan 
+
 # Default text color for the mode label
 TEXT_COLOR = "#00FFFF" # Cyan to match the box
 
